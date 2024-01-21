@@ -2,6 +2,7 @@
 import pymongo
 from flask import Flask,request,jsonify,Response
 import json
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
@@ -15,16 +16,17 @@ client = pymongo.MongoClient(uri)
 #         db = client["students"]
 #         collection = db["std_info"]
 #         all_students = collection.find()
-#         # print(collection.find_one())
-#         for std in all_students:
-#                 print(std)
+#         std_id = '6130300654'
+#         print(collection.find_one({"_id":std_id}))
+#         # for std in all_students:
+#         #         print(std)
 #         # return Response(
 #         #     response = {all_students},
 #         #     status = 200 ,
 #         #     mimetype = "application/json"
 #         # )
 # except Exception as e:
-#         print(e)
+#         print("Can't Find")
 
 @app.route("/",methods = ["GET"])
 def get_index():
@@ -34,25 +36,64 @@ def get_index():
     except Exception as e:
         print(e)
 
-@app.route("/students",methods = ["GET"])
+@app.route("/students/",methods = ["GET"])
 def get_students():
     try:
         client.admin.command("ping")
         db = client["students"]
         collection = db["std_info"]
-        all_students = list(collection.find())
+        get_all_students = list(collection.find())
         # data = list(all_students)
         return Response (
-            response = json.dumps(all_students),
+            response = json.dumps(get_all_students),
             status = 200 ,
             mimetype = "application/json"
         )
     except Exception as e:
         print(e)
 
+@app.route("/students/<int:std_id>",methods = ["GET"])
+def get_students2(std_id):
+    try:
+        client.admin.command("ping")
+        db = client["students"]
+        collection = db["std_info"]
+        std_id2 = str(std_id)
+        # print(std_id2)
+        get_students = collection.find_one({"_id":std_id2})
+        print(get_students)
+        # data = list(all_students)
+        # return Response (
+        #         response = json.dumps(get_students),
+        #         status = 200 ,
+        #         mimetype = "application/json"
+        #     )
+        if(get_students != None) :
+            return Response (
+                response = json.dumps(get_students),
+                status = 200 ,
+                mimetype = "application/json"
+            )
+        else :
+            return Response (
+            response = json.dumps({"error":"Student not found"}),
+            status = 404 ,
+            mimetype = "application/json"
+            )
+    # except Exception as e:
+    #     # error_code =
+    #     return Response (
+    #         response = json.dumps({"error":"Student not found"}),
+    #         status = 404 ,
+    #         mimetype = "application/json"
+    #     )
+    except Exception as e:
+        print(e)
+
+
 
 if __name__ == "__main__" :
-        app.run(debug=True)
+        app.run(debug=True, port=5001, host='0.0.0.0')
 
 # Send a ping to confirm a successful connection
 # try:
