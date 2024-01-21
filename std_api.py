@@ -25,25 +25,64 @@ def get_index():
     except Exception as e:
         print(e)
 
-@app.route("/students/",methods = ["GET"])
-@basic_auth.required
+@app.route("/students",methods = ["GET","POST"])
+# @basic_auth.required
 def get_students():
-    try:
+    try : 
         client.admin.command("ping")
         db = client["students"]
         collection = db["std_info"]
-        # get_all_students = collection.find()
-        get_all_students = list(collection.find())
-        # data = list(all_students)
-        # return jsonify({"Students":get_all_students})
-        return Response (
-            response = json.dumps(get_all_students),
-            # response = jsonify({"Students":get_all_students}),
-            status = 200 ,
-            mimetype = "application/json"
-        )
-    except Exception as e:
+        if (request.method  == "GET" ) :
+            try:
+                # get_all_students = collection.find()
+                get_all_students = list(collection.find())
+                # data = list(all_students)
+                # return jsonify({"Students":get_all_students})
+                return Response (
+                    response = json.dumps(get_all_students),
+                    # response = jsonify({"Students":get_all_students}),
+                    status = 200 ,
+                    mimetype = "application/json"
+                )
+            except Exception as e:
+                print(e)
+        if (request.method  == "POST" ) : 
+            try:
+                data = request.get_json()
+                new_student = {
+                    "_id" : data["_id"],
+                    "fullname" : data["fullname"],
+                    "major" : data["major"],
+                    "gpa" : data["gpa"]
+                }
+
+                dbResponse = collection.insert_one(new_student)
+                # print(insert)
+                print("insert Result : ")
+                print(dbResponse)
+                # return new_student
+                return Response (
+                    response = json.dumps({"_id" : data["_id"],"fullname" : data["fullname"],"major" : data["major"],"gpa" : data["gpa"]}) ,
+                    # response = json.dumps({"_id" : data["_id"],"fullname" : data["fullname"],"major" : data["major"],"gpa" : data["gpa"]}) ,
+                    status = 200 ,
+                    mimetype = "application/json"
+                    )
+            # collection.insert_one(new_student)
+            except Exception as e:
+                print(e)
+                return Response (
+                        response = json.dumps({"error":"Cannot create new student"}),
+                        status = 500 ,
+                        mimetype = "application/json"
+                        )
+    except Exception as e : 
         print(e)
+        return Response (
+        response = json.dumps({"error":"Cannot Connect DB"}),
+        status = 404 ,
+        mimetype = "application/json"
+        )
+        
 
 @app.route("/students/<int:std_id>",methods = ["GET"])
 @basic_auth.required
@@ -71,7 +110,44 @@ def get_students2(std_id):
     except Exception as e:
         print(e)
 
+if (__name__ == "__main__") :
+    app.run(debug=True, port=5001, host='0.0.0.0')
+
+# @app.route("/students",methods = ["POST"])
+# # @basic_auth.required
+# def post_students():
+#     try:
+#         client.admin.command("ping")
+#         db = client["students"]
+#         collection = db["std_info"]
+#         data = request.get_json()
+#         new_student = {
+#             "_id" : data["_id"],
+#             "fullname" : data["fullname"],
+#             "major" : data["major"],
+#             "gpa" : data["gpa"]
+#         }
+
+#         dbResponse = collection.insert_one(new_student)
+#         # print(insert)
+#         print("insert Result : ")
+#         print(dbResponse)
+#         # return new_student
+#         return Response (
+#             response = json.dumps({"_id" : data["_id"],"fullname" : data["fullname"],"major" : data["major"],"gpa" : data["gpa"]}) ,
+#             # response = json.dumps({"_id" : data["_id"],"fullname" : data["fullname"],"major" : data["major"],"gpa" : data["gpa"]}) ,
+#             status = 200 ,
+#             mimetype = "application/json"
+#             )
+#         # collection.insert_one(new_student)
+#     except Exception as e:
+#         print(e)
+#         return Response (
+#                 response = json.dumps({"error":"Cannot create new student"}),
+#                 status = 500 ,
+#                 mimetype = "application/json"
+#                 )
 
 
-if __name__ == "__main__" :
-        app.run(debug=True, port=5001, host='0.0.0.0')
+
+
